@@ -125,8 +125,17 @@ final class KeepAwakeManager {
     private(set) var isScreenAwakeActive: Bool = false
 
     /// Prevent the display and system from idle-sleeping.
+    /// If already active, just restarts the timer with the new duration.
     func enableScreenAwake(duration: TimeInterval? = nil) {
-        guard screenActivity == nil else { return }
+        if screenActivity != nil {
+            // Already active — just restart the timer if a duration is given
+            if let duration = duration {
+                TimerManager.shared.startTimer(duration: duration) { [weak self] in
+                    self?.disableScreenAwake()
+                }
+            }
+            return
+        }
 
         let options: ProcessInfo.ActivityOptions = [
             .idleSystemSleepDisabled,
@@ -141,11 +150,11 @@ final class KeepAwakeManager {
         PersistenceManager.shared.screenAwakeEnabled = true
         postScreenAwakeNotification()
 
-        // If a duration was specified, schedule auto-disable
         if let duration = duration {
             TimerManager.shared.startTimer(duration: duration) { [weak self] in
                 self?.disableScreenAwake()
             }
+            PersistenceManager.shared.isTimerActive = true
         }
 
         print("[Crackinate] Screen awake enabled")
@@ -172,8 +181,17 @@ final class KeepAwakeManager {
     private(set) var isLidClosePreventionActive: Bool = false
 
     /// Prevent the Mac from sleeping when the lid is closed.
+    /// If already active, just restarts the timer with the new duration.
     func enableLidClosePrevention(duration: TimeInterval? = nil) {
-        guard !isLidClosePreventionActive else { return }
+        if isLidClosePreventionActive {
+            // Already active — just restart the timer if a duration is given
+            if let duration = duration {
+                TimerManager.shared.startTimer(duration: duration) { [weak self] in
+                    self?.disableLidClosePrevention()
+                }
+            }
+            return
+        }
 
         do {
             try PmsetController.setDisableSleep(true)
