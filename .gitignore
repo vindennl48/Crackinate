@@ -1,0 +1,26 @@
+# Build artifacts
+.build/
+DerivedData/
+
+# Xcode
+*.xcuserdata/
+*.xcworkspace/
+xcuserdata/
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# App bundle (built, not source)
+*.app/
+
+# IDE
+.idea/
+.vscode/
+
+# Pi agent state
+.pi/
+
+# SwiftPM
+.swiftpm/
+Package.resolved
