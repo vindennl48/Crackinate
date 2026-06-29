@@ -85,6 +85,8 @@ Select a duration from the picker to automatically disable keep-awake after that
 - **Forever** — Stays active until manually turned off
 - **5 min / 15 min / 30 min / 1 hr / 2 hr** — Auto-disables on expiry
 
+You can change the timer at any time, even while keep-awake is active. The countdown restarts with the new duration. When the timer expires or you click Stop, the picker resets to your default from Settings.
+
 A countdown timer appears in the popover when a timed session is active.
 
 ## Settings
@@ -161,6 +163,14 @@ To run tests, ensure `xcode-select` points to Xcode:
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 swift test  # 71 tests, all passing
 ```
+
+### Current Status
+
+✅ All 9 phases complete — P0 through P9
+✅ 71 unit tests, all passing
+✅ Zero build warnings
+✅ Single-instance guard
+✅ Live timer picker sync with Settings
 
 ## Documentation
 
