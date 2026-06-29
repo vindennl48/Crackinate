@@ -28,7 +28,9 @@ case "--help", "help", "-h":
 
 case "activate":
     post(notificationActivate)
+    let status = getStatus()
     print("Activated keep-awake (screen + lid)")
+    showSetupHints(from: status)
 
 case "deactivate":
     post(notificationDeactivate)
@@ -53,7 +55,11 @@ case "lid":
         exit(1)
     }
     switch sub {
-    case "on":  post(notificationLidOn);  print("Lid-close prevention enabled")
+    case "on":
+        post(notificationLidOn)
+        print("Lid-close prevention enabled")
+        let status = getStatus()
+        showSetupHints(from: status)
     case "off": post(notificationLidOff); print("Lid-close prevention disabled")
     default:
         print("Usage: crackinate lid on|off")
@@ -61,30 +67,12 @@ case "lid":
     }
 
 case "status":
-    // Listen for the reply from the main app
-    let semaphore = DispatchSemaphore(value: 0)
-    var statusLine = "Crackinate: could not reach app (is it running?)"
-
-    var observer: NSObjectProtocol?
-    observer = DistributedNotificationCenter.default().addObserver(
-        forName: NSNotification.Name(notificationStatusReply),
-        object: nil,
-        queue: .main
-    ) { notification in
-        if let info = notification.userInfo?["status"] as? String {
-            statusLine = info
-        }
-        semaphore.signal()
+    let statusLine = getStatus()
+    if statusLine.isEmpty {
+        print("Crackinate: could not reach app (is it running?)")
+    } else {
+        print(statusLine)
     }
-
-    post(notificationStatus)
-
-    // Wait up to 1 second for reply
-    _ = semaphore.wait(timeout: .now() + 1.0)
-    if let obs = observer {
-        DistributedNotificationCenter.default().removeObserver(obs)
-    }
-    print(statusLine)
 
 case "timer":
     guard let durationStr = args.dropFirst().first else {
@@ -151,4 +139,44 @@ func printUsage() {
       crackinate timer 30m
       crackinate status
     """)
+}
+
+/// Query the running app for current status. Returns empty string on timeout.
+func getStatus() -> String {
+    let semaphore = DispatchSemaphore(value: 0)
+    var statusLine = ""
+
+    var observer: NSObjectProtocol?
+    observer = DistributedNotificationCenter.default().addObserver(
+        forName: NSNotification.Name(notificationStatusReply),
+        object: nil,
+        queue: OperationQueue()   // background queue so main thread blocking doesn't deadlock
+    ) { notification in
+        if let info = notification.userInfo?["status"] as? String {
+            statusLine = info
+        }
+        semaphore.signal()
+    }
+
+    post(notificationStatus)
+    _ = semaphore.wait(timeout: .now() + 2.0)
+    if let obs = observer {
+        DistributedNotificationCenter.default().removeObserver(obs)
+    }
+    return statusLine
+}
+
+/// Show hints if lid-close or battery setup is needed.
+func showSetupHints(from status: String) {
+    if status.isEmpty {
+        print("  ⚠ Could not reach Crackinate app — is it running?")
+        return
+    }
+    if status.contains("Lid-close") { return }  // lid is active, all good
+
+    // Lid-close didn't enable — check why
+    if !status.contains("Lid-close") {
+        print("  ⚠ Lid-close sleep prevention not active.")
+        print("  → Open the Crackinate popover and toggle \"Prevent Lid Sleep\" ON to complete one-time setup.")
+    }
 }
