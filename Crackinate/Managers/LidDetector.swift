@@ -57,11 +57,20 @@ final class LidDetector {
 
         defer { result.release() }
 
-        guard let dict = result.takeRetainedValue() as? [String: Any],
-              let closed = dict["ClamshellState"] as? Bool else {
-            return false
+        let value = result.takeRetainedValue()
+
+        // Newer macOS: value is a direct CFBoolean (true/false)
+        if let closed = value as? Bool {
+            return closed
         }
-        return closed
+
+        // Older macOS: value is a dictionary with "ClamshellState" key
+        if let dict = value as? [String: Any],
+           let closed = dict["ClamshellState"] as? Bool {
+            return closed
+        }
+
+        return false
     }
 }
 
