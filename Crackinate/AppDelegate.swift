@@ -47,6 +47,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
+        // Listen for CLI commands via distributed notifications
+        setupCLIListener()
+
         // Request notification permissions early
         NotificationManager.shared.requestPermission()
 
@@ -163,12 +166,117 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Single Instance
 
     /// Returns true if this is the only running instance of Crackinate.
-    /// Prevents duplicate menu bar icons when Launch at Login spawns a second copy.
     private var isOnlyInstance: Bool {
         let bundleID = Bundle.main.bundleIdentifier ?? Constants.bundleIdentifier
         let instances = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
-        // Count only apps (not background daemons) with our bundle ID
         let count = instances.filter { $0.activationPolicy == .accessory || $0.activationPolicy == .regular }.count
         return count <= 1
+    }
+
+    // MARK: - CLI Commands
+
+    private func setupCLIListener() {
+        let center = DistributedNotificationCenter.default()
+
+        let commands: [(String, Selector)] = [
+            ("com.crackinate.activate",   #selector(handleCLIActivate)),
+            ("com.crackinate.deactivate",  #selector(handleCLIDeactivate)),
+            ("com.crackinate.screenOn",    #selector(handleCLIScreenOn)),
+            ("com.crackinate.screenOff",   #selector(handleCLIScreenOff)),
+            ("com.crackinate.lidOn",       #selector(handleCLILidOn)),
+            ("com.crackinate.lidOff",      #selector(handleCLILidOff)),
+            ("com.crackinate.status",      #selector(handleCLIStatus)),
+            ("com.crackinate.timer",       #selector(handleCLITimer)),
+        ]
+
+        for (name, sel) in commands {
+            center.addObserver(self, selector: sel, name: NSNotification.Name(name), object: nil)
+        }
+
+        print("[Crackinate] CLI listener ready")
+    }
+
+    @objc private func handleCLIActivate() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.enableScreenAwake()
+            KeepAwakeManager.shared.enableLidClosePrevention()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLIDeactivate() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.disableAll()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLIScreenOn() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.enableScreenAwake()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLIScreenOff() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.disableScreenAwake()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLILidOn() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.enableLidClosePrevention()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLILidOff() {
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.disableLidClosePrevention()
+            self.updateIcon()
+        }
+    }
+
+    @objc private func handleCLIStatus(_ notification: Notification) {
+        DispatchQueue.main.async {
+            let mgr = KeepAwakeManager.shared
+            let timerActive = TimerManager.shared.isTimerActive
+            let remaining = TimerManager.shared.remainingTime
+
+            var status = ""
+            if mgr.isScreenAwakeActive && mgr.isLidClosePreventionActive {
+                status = "Screen awake + Lid-close prevention active"
+            } else if mgr.isScreenAwakeActive {
+                status = "Screen awake"
+            } else if mgr.isLidClosePreventionActive {
+                status = "Lid-close prevention active"
+            } else {
+                status = "Inactive"
+            }
+
+            if timerActive, let remaining = remaining {
+                let mins = Int(remaining) / 60
+                let secs = Int(remaining) % 60
+                status += " | Timer: \(mins):\(String(format: "%02d", secs)) remaining"
+            }
+
+            DistributedNotificationCenter.default().postNotificationName(
+                NSNotification.Name("com.crackinate.statusReply"),
+                object: nil,
+                userInfo: ["status": status],
+                options: .deliverImmediately
+            )
+        }
+    }
+
+    @objc private func handleCLITimer(_ notification: Notification) {
+        guard let duration = notification.userInfo?["duration"] as? Int, duration > 0 else { return }
+        DispatchQueue.main.async {
+            KeepAwakeManager.shared.enableScreenAwake(duration: TimeInterval(duration))
+            KeepAwakeManager.shared.enableLidClosePrevention(duration: TimeInterval(duration))
+            self.updateIcon()
+        }
     }
 }

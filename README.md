@@ -44,6 +44,23 @@ open -a Xcode Package.swift  # opens as Xcode project
 cp -R .build/release/Crackinate.app /Applications/
 ```
 
+### CLI Companion
+
+Install the command-line tool for terminal control:
+
+```bash
+make install-cli   # installs to /usr/local/bin/crackinate
+```
+
+```bash
+crackinate activate           # Turn ON screen + lid
+crackinate deactivate         # Turn OFF everything
+crackinate screen on|off      # Toggle screen awake
+crackinate lid on|off         # Toggle lid-close prevention
+crackinate timer 30m          # Activate with 30-minute auto-off
+crackinate status             # Show current state
+```
+
 ## Usage
 
 ### Menu Bar

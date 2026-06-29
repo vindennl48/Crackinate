@@ -1,3 +1,4 @@
+CLI_NAME     := CrackinateCLI
 APP_NAME     := Crackinate
 BUILD_DIR    := .build
 BUILD_ARCH   := arm64
@@ -6,6 +7,7 @@ APP_BUNDLE   := $(RELEASE_DIR)/$(APP_NAME).app
 CONTENTS     := $(APP_BUNDLE)/Contents
 MACOS_DIR    := $(CONTENTS)/MacOS
 RESOURCES    := $(CONTENTS)/Resources
+CLI_BIN      := $(RELEASE_DIR)/$(CLI_NAME)
 SWIFT_FILES  := $(shell find Crackinate -name '*.swift' | sort)
 PLIST_SRC    := Crackinate/Info.plist
 ASSETS_DIR   := Crackinate/Assets.xcassets
@@ -22,21 +24,28 @@ build:
 release:
 	swift build -c release --arch $(BUILD_ARCH)
 
-# Create full .app bundle
+# Create full .app bundle + CLI
 app: release
 	@echo "📦 Creating $(APP_NAME).app bundle..."
 	@rm -rf $(APP_BUNDLE)
 	@mkdir -p $(MACOS_DIR)
 	@mkdir -p $(RESOURCES)
 	@cp $(BUILD_DIR)/$(BUILD_ARCH)-apple-macosx/release/$(APP_NAME) $(MACOS_DIR)/
+	@cp $(BUILD_DIR)/$(BUILD_ARCH)-apple-macosx/release/$(CLI_NAME) $(MACOS_DIR)/ 2>/dev/null || true
 	@cp $(PLIST_SRC) $(CONTENTS)/Info.plist
 	@cp -R $(ASSETS_DIR) $(RESOURCES)/Assets.xcassets 2>/dev/null || true
 	@xattr -rd com.apple.quarantine $(APP_BUNDLE) 2>/dev/null || true
 	@echo "✅ $(APP_BUNDLE) created"
+	@echo "✅ CLI: $(CLI_BIN)"
 
 # Run debug build
 run: build
 	$(BUILD_DIR)/$(BUILD_ARCH)-apple-macosx/debug/$(APP_NAME)
+
+# Install CLI to /usr/local/bin as 'crackinate'
+install-cli: app
+	@cp $(CLI_BIN) /usr/local/bin/crackinate 2>/dev/null || (echo "Need sudo:" && sudo cp $(CLI_BIN) /usr/local/bin/crackinate)
+	@echo "✅ CLI installed to /usr/local/bin/crackinate"
 
 # Open release app
 open: app

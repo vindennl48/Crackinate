@@ -15,6 +15,10 @@ let package = Package(
                 "Assets.xcassets",
             ]
         ),
+        .executableTarget(
+            name: "CrackinateCLI",
+            path: "CLI"
+        ),
         .testTarget(
             name: "CrackinateTests",
             dependencies: ["Crackinate"],

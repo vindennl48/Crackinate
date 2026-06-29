@@ -24,3 +24,7 @@ Thumbs.db
 # SwiftPM
 .swiftpm/
 Package.resolved
+*.o
+*.d
+*.dia
+*.swiftdeps
