@@ -30,16 +30,18 @@ fi
 
 # 3. Remove CLI
 if [ -f "${CLI_DEST}" ]; then
-    sudo rm -f "${CLI_DEST}"
-    echo -e "${GREEN}✓ Removed ${CLI_DEST}${NC}"
+    if rm -f "${CLI_DEST}" 2>/dev/null; then
+        echo -e "${GREEN}✓ Removed ${CLI_DEST}${NC}"
+    else
+        sudo rm -f "${CLI_DEST}" 2>/dev/null && echo -e "${GREEN}✓ Removed ${CLI_DEST} (via sudo)${NC}" || echo "  Could not remove CLI (try: sudo rm ${CLI_DEST})"
+    fi
 else
     echo "  CLI not found at ${CLI_DEST}"
 fi
 
 # 4. Remove sudoers file
 if [ -f "${SUDOERS_FILE}" ]; then
-    sudo rm -f "${SUDOERS_FILE}"
-    echo -e "${GREEN}✓ Removed ${SUDOERS_FILE}${NC}"
+    sudo rm -f "${SUDOERS_FILE}" 2>/dev/null && echo -e "${GREEN}✓ Removed ${SUDOERS_FILE}${NC}" || echo -e "${YELLOW}⚠ Could not remove sudoers file (try: sudo rm ${SUDOERS_FILE})${NC}"
 else
     echo "  Sudoers file not found"
 fi

@@ -62,11 +62,10 @@ echo -e "${YELLOW}Installing Crackinate...${NC}"
 # Determine project root (parent of this script's directory)
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-# 7. Build the app
+# 7. Build the app + CLI
 cd "${SCRIPT_DIR}"
 echo "  Building..."
-swift build -c release --arch arm64 2>/dev/null
-swift build -c release --arch x86_64 2>/dev/null || true
+make app 2>/dev/null
 
 # 8. Copy app bundle
 BUNDLE_SRC="${SCRIPT_DIR}/.build/release/${APP_BUNDLE}"
@@ -82,9 +81,13 @@ echo -e "${GREEN}✓ Installed ${INSTALL_DIR}/${APP_BUNDLE}${NC}"
 # 9. Install CLI
 CLI_SRC="${SCRIPT_DIR}/.build/release/CrackinateCLI"
 if [ -f "${CLI_SRC}" ]; then
-    sudo cp "${CLI_SRC}" "${CLI_DEST}"
-    sudo chmod 755 "${CLI_DEST}"
-    echo -e "${GREEN}✓ Installed CLI to ${CLI_DEST}${NC}"
+    if cp "${CLI_SRC}" "${CLI_DEST}" 2>/dev/null; then
+        chmod 755 "${CLI_DEST}"
+        echo -e "${GREEN}✓ Installed CLI to ${CLI_DEST}${NC}"
+    else
+        echo -e "${YELLOW}⚠ Need sudo to install CLI — run:${NC}"
+        echo "  sudo cp ${CLI_SRC} ${CLI_DEST}"
+    fi
 else
     echo -e "${YELLOW}⚠ CLI binary not found, skipping${NC}"
 fi
