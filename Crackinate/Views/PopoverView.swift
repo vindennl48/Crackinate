@@ -33,6 +33,12 @@ struct PopoverView: View {
             timerRemaining = TimerManager.shared.remainingTime
             isTimerActive = TimerManager.shared.isTimerActive
         }
+        .onChange(of: isTimerActive) { _, active in
+            // When timer expires naturally, reset picker to default
+            if !active {
+                resetToDefaultDuration()
+            }
+        }
     }
 
     // MARK: - Header
@@ -228,6 +234,17 @@ struct PopoverView: View {
         KeepAwakeManager.shared.disableAll()
         screenAwakeEnabled = false
         lidSleepDisabled = false
+        resetToDefaultDuration()
+    }
+
+    /// Reset the timer picker to the user's default from Settings.
+    private func resetToDefaultDuration() {
+        let defaultSeconds = PersistenceManager.shared.timerDuration
+        if defaultSeconds > 0, let dur = TimerDuration(rawValue: defaultSeconds) {
+            selectedDuration = dur
+        } else {
+            selectedDuration = .forever
+        }
     }
 
     // MARK: - Bottom
