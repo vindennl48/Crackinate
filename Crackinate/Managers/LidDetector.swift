@@ -41,9 +41,10 @@ final class LidDetector {
     // MARK: - Static Check
 
     static func checkLidClosed() -> Bool {
+        // AppleClamshellState is a property on IOPMrootDomain, not a standalone service.
         let service = IOServiceGetMatchingService(
             kIOMainPortDefault,
-            IOServiceMatching("AppleClamshellState")
+            IOServiceMatching("IOPMrootDomain")
         )
         guard service != 0 else { return false }
         defer { IOObjectRelease(service) }
@@ -59,12 +60,12 @@ final class LidDetector {
 
         let value = result.takeRetainedValue()
 
-        // Newer macOS: value is a direct CFBoolean (true/false)
+        // Newer macOS: value is a direct CFBoolean
         if let closed = value as? Bool {
             return closed
         }
 
-        // Older macOS: value is a dictionary with "ClamshellState" key
+        // Older macOS: dictionary with "ClamshellState" key
         if let dict = value as? [String: Any],
            let closed = dict["ClamshellState"] as? Bool {
             return closed
