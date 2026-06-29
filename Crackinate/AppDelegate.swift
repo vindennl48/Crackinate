@@ -58,6 +58,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         PowerMonitor.shared.startMonitoring()
         LidDetector.shared.startPolling()
 
+        // Wire lid state changes to display dimming (if enabled in Settings)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(lidStateDidChange(_:)),
+            name: .lidStateDidChange,
+            object: nil
+        )
+
         // Validate/update LaunchAgent path in case app was moved
         LaunchAgentManager.shared.validateLaunchAgentPath()
 
@@ -161,6 +169,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         KeepAwakeManager.shared.disableAll()
+    }
+
+    // MARK: - Lid State → Display Dimming
+
+    @objc private func lidStateDidChange(_ notification: Notification) {
+        guard PersistenceManager.shared.dimDisplayWhenLidClosed else { return }
+        guard let isClosed = notification.object as? NSNumber else { return }
+
+        if isClosed.boolValue {
+            DisplayDimmer.shared.dim()
+        } else {
+            DisplayDimmer.shared.restore()
+        }
     }
 
     // MARK: - Single Instance
