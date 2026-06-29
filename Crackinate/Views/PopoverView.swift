@@ -204,6 +204,24 @@ struct PopoverView: View {
                     .padding(.horizontal)
             }
         }
+        .onChange(of: selectedDuration) { _, newDuration in
+            applyDurationToActiveToggles(newDuration)
+        }
+    }
+
+    /// When the user changes the timer picker while a toggle is already ON,
+    /// restart that toggle with the new duration.
+    private func applyDurationToActiveToggles(_ duration: TimerDuration) {
+        let interval: TimeInterval? = (duration == .forever)
+            ? nil : TimeInterval(duration.rawValue)
+
+        if KeepAwakeManager.shared.isScreenAwakeActive {
+            KeepAwakeManager.shared.enableScreenAwake(duration: interval)
+        }
+        if KeepAwakeManager.shared.isLidClosePreventionActive {
+            // Don't show battery/sudoers alerts again — user already approved
+            KeepAwakeManager.shared.enableLidClosePrevention(duration: interval)
+        }
     }
 
     private func stopTimer() {
