@@ -13,7 +13,10 @@ Crackinate keeps your Mac awake when you need it — with configurable timers, p
 - ⏱ **Timed Keep-Awake** — 5min / 15min / 30min / 1hr / 2hr presets with countdown display
 - 🌡 **Thermal Safety** — Auto-disables all keep-awake on critical system temperature
 - 🔋 **Battery Warnings** — Confirms before enabling lid-close prevention on battery
+- 🖥 **Display Dimming** — Dims built-in display when lid closes while keep-awake is active
 - 🚀 **Launch at Login + Auto-Revive** — SMAppService + LaunchAgent ensures the app restarts after a crash
+- ⌨️ **CLI Companion** — Control keep-awake from the terminal (`crackinate activate`, `crackinate status`, etc.)
+- 🔒 **Single Instance** — Prevents duplicate menu bar icons
 - 💾 **Persistent Settings** — All preferences survive reboots via UserDefaults
 
 ## Requirements
@@ -48,15 +51,15 @@ This uninstalls any previous version, builds the app, installs to `/Applications
 
 Removes the app, CLI, sudoers file, LaunchAgent, and UserDefaults.
 
-Or build with Xcode:
+### Build with Xcode
 
 ```bash
-open -a Xcode Package.swift  # opens as Xcode project
+open -a Xcode Package.swift
 ```
 
 ### CLI Companion
 
-Install the command-line tool for terminal control:
+The CLI installs automatically with `./scripts/install.sh`, or manually:
 
 ```bash
 make install-cli   # installs to /usr/local/bin/crackinate
@@ -70,6 +73,8 @@ crackinate lid on|off         # Toggle lid-close prevention
 crackinate timer 30m          # Activate with 30-minute auto-off
 crackinate status             # Show current state
 ```
+
+If the app isn't running or lid-close needs setup, the CLI will tell you.
 
 ## Usage
 
@@ -151,7 +156,7 @@ Quitting Crackinate (Cmd+Q or menu → Quit) releases all assertions and resets 
 ```
 Crackinate/
 ├── CrackinateApp.swift          # @main entry point
-├── AppDelegate.swift            # NSStatusItem + NSPopover
+├── AppDelegate.swift            # NSStatusItem, NSPopover, CLI listener, lid dimming
 ├── Constants.swift              # SettingsKeys, constants
 ├── PersistenceManager.swift     # UserDefaults wrapper
 ├── IconProvider.swift           # Menu bar icons (6 states)
@@ -165,14 +170,25 @@ Crackinate/
 │   ├── SudoersInstaller.swift   # sudoers file management
 │   ├── LaunchAgentManager.swift # Login item + auto-revive
 │   ├── NotificationManager.swift
-│   └── DisplayDimmer.swift      # CoreDisplay dimming (experimental)
+│   └── DisplayDimmer.swift      # CoreDisplay brightness control
 ├── Views/
 │   ├── PopoverView.swift        # Main popover UI
 │   └── SettingsView.swift       # Preferences window
-└── Components/
-    ├── ToggleRow.swift
-    ├── TimerPicker.swift
-    └── CountdownDisplay.swift
+├── Components/
+│   ├── ToggleRow.swift
+│   ├── TimerPicker.swift
+│   └── CountdownDisplay.swift
+├── CLI/
+│   ├── main.swift               # CLI command routing
+│   └── Helpers.swift            # parseDuration, getStatus, hints
+├── CrackinateTests/             # 71 app unit tests
+├── CLITests/                    # 16 CLI unit tests
+├── scripts/
+│   ├── install.sh               # One-command build + install
+│   └── uninstall.sh             # Complete removal
+├── docs/                        # User Guide, Developer Guide, planning docs
+├── Package.swift
+└── Makefile
 ```
 
 ### Building & Testing
@@ -188,16 +204,18 @@ To run tests, ensure `xcode-select` points to Xcode:
 
 ```bash
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-swift test  # 71 tests, all passing
+swift test  # 87 tests, all passing
 ```
 
 ### Current Status
 
 ✅ All 9 phases complete — P0 through P9
-✅ 71 unit tests, all passing
+✅ 87 unit tests, all passing
 ✅ Zero build warnings
 ✅ Single-instance guard
 ✅ Live timer picker sync with Settings
+✅ CLI companion with setup hints
+✅ Display dimming on lid close
 
 ## Documentation
 
