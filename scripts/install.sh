@@ -82,7 +82,10 @@ echo -e "${GREEN}✓ Installed ${INSTALL_DIR}/${APP_BUNDLE}${NC}"
 CLI_SRC="${SCRIPT_DIR}/.build/release/CrackinateCLI"
 if [ -f "${CLI_SRC}" ]; then
     echo "  Installing CLI (may ask for password)..."
-    osascript -e "do shell script \"cp ${CLI_SRC} ${CLI_DEST} && chmod 755 ${CLI_DEST}\" with administrator privileges" 2>/dev/null
+    # Stage through /tmp so osascript (running as root) can access it
+    cp "${CLI_SRC}" /tmp/CrackinateCLI
+    osascript -e "do shell script \"mkdir -p /usr/local/bin && cp /tmp/CrackinateCLI ${CLI_DEST} && chmod 755 ${CLI_DEST} && rm /tmp/CrackinateCLI\" with administrator privileges" 2>/dev/null
+    rm -f /tmp/CrackinateCLI
     if [ -f "${CLI_DEST}" ]; then
         echo -e "${GREEN}✓ Installed CLI to ${CLI_DEST}${NC}"
     else
