@@ -34,8 +34,13 @@ struct PopoverView: View {
             isTimerActive = TimerManager.shared.isTimerActive
         }
         .onChange(of: isTimerActive) { _, active in
-            // When timer expires naturally, reset picker to default
             if !active {
+                resetToDefaultDuration()
+            }
+        }
+        .onChange(of: timerDurationRaw) { _, _ in
+            // Settings default changed — update picker if no timer is running
+            if !isTimerActive {
                 resetToDefaultDuration()
             }
         }
