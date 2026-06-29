@@ -24,5 +24,10 @@ let package = Package(
             dependencies: ["Crackinate"],
             path: "CrackinateTests"
         ),
+        .testTarget(
+            name: "CrackinateCLITests",
+            dependencies: ["CrackinateCLI"],
+            path: "CLITests"
+        ),
     ]
 )
