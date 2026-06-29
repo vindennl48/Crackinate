@@ -32,16 +32,26 @@ make app
 open .build/release/Crackinate.app
 ```
 
+### One-Command Install (Recommended)
+
+```bash
+./scripts/install.sh
+```
+
+This uninstalls any previous version, builds the app, installs to `/Applications`, and sets up the CLI to `/usr/local/bin/crackinate`.
+
+### Uninstall
+
+```bash
+./scripts/uninstall.sh
+```
+
+Removes the app, CLI, sudoers file, LaunchAgent, and UserDefaults.
+
 Or build with Xcode:
 
 ```bash
 open -a Xcode Package.swift  # opens as Xcode project
-```
-
-### Move to Applications (Recommended)
-
-```bash
-cp -R .build/release/Crackinate.app /Applications/
 ```
 
 ### CLI Companion
