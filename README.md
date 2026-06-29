@@ -26,7 +26,7 @@ Crackinate keeps your Mac awake when you need it — with configurable timers, p
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourname/Crackinate.git
+git clone https://github.com/vindennl48/Crackinate.git
 cd Crackinate
 make app
 open .build/release/Crackinate.app
@@ -107,6 +107,10 @@ If your Mac reaches critical temperature, Crackinate **automatically disables al
 
 Enabling lid-close prevention on battery power shows a confirmation dialog (can be disabled in Settings).
 
+### Single Instance
+
+Crackinate detects if another copy is already running and refuses to launch a duplicate — no more double menu bar icons.
+
 ### Safe Quit
 
 Quitting Crackinate (Cmd+Q or menu → Quit) releases all assertions and resets `pmset disablesleep` to 0. Screen sleep assertions are automatically released by macOS if the app crashes.
@@ -155,8 +159,17 @@ To run tests, ensure `xcode-select` points to Xcode:
 
 ```bash
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-swift test
+swift test  # 71 tests, all passing
 ```
+
+## Documentation
+
+- [User Guide](docs/UserGuide.md) — How to use Crackinate
+- [Developer Guide](docs/DeveloperGuide.md) — Architecture, design decisions, contributing
+- [Feature Spec](docs/features.md) — Full feature specification
+- [API Reference](docs/research-apis.md) — macOS API catalog
+- [Architecture Research](docs/research-architecture.md) — Technology recommendations
+- [Execution Plan](docs/EXECUTION_PLAN.md) — Phase-by-phase build plan
 
 ## License
 
