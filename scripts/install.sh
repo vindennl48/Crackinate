@@ -59,8 +59,8 @@ defaults delete com.crackinate.app 2>/dev/null && echo -e "${GREEN}✓ Cleared U
 echo ""
 echo -e "${YELLOW}Installing Crackinate...${NC}"
 
-# Determine source dir (same dir as this script)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Determine project root (parent of this script's directory)
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # 7. Build the app
 cd "${SCRIPT_DIR}"
