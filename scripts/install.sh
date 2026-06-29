@@ -81,12 +81,12 @@ echo -e "${GREEN}✓ Installed ${INSTALL_DIR}/${APP_BUNDLE}${NC}"
 # 9. Install CLI
 CLI_SRC="${SCRIPT_DIR}/.build/release/CrackinateCLI"
 if [ -f "${CLI_SRC}" ]; then
-    if cp "${CLI_SRC}" "${CLI_DEST}" 2>/dev/null; then
-        chmod 755 "${CLI_DEST}"
+    echo "  Installing CLI (may ask for password)..."
+    osascript -e "do shell script \"cp ${CLI_SRC} ${CLI_DEST} && chmod 755 ${CLI_DEST}\" with administrator privileges" 2>/dev/null
+    if [ -f "${CLI_DEST}" ]; then
         echo -e "${GREEN}✓ Installed CLI to ${CLI_DEST}${NC}"
     else
-        echo -e "${YELLOW}⚠ Need sudo to install CLI — run:${NC}"
-        echo "  sudo cp ${CLI_SRC} ${CLI_DEST}"
+        echo -e "${YELLOW}⚠ CLI install skipped (password required)${NC}"
     fi
 else
     echo -e "${YELLOW}⚠ CLI binary not found, skipping${NC}"
